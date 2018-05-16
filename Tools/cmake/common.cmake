@@ -1,3 +1,4 @@
+# ----------------------------------------------------------------------
 # EnsureProperties
 #   Validates that all properties have been defined.
 #
@@ -15,6 +16,7 @@ This property must be defined to correctly generate content. There is a configur
     endforeach()
 endfunction()
 
+# ----------------------------------------------------------------------
 # EnsureTools
 #   Validates that all tools are available. This is a macro to ensure that the property '<tool_name>_binary' is available within
 #   the namespace of calling scripts.

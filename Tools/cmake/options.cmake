@@ -1,5 +1,14 @@
 # Options that control cmake generation
 
-SET(CMAKE_EXPORT_COMPILE_COMMANDS "ON")
+option(
+    CNTK_DEBUG_CMAKE                 
+    "Enable cmake-specific debug output" 
+    "OFF"
+)
 
-option(CNTK_DEBUG_CMAKE "Enable cmake-specific debug output" "OFF")
+option(
+    CNTK_EXPORT_COMPILE_COMMANDS     
+    "Enable the generation of compile commands to 'compile_commands.json'."     
+    "OFF"   
+)
+

@@ -5,12 +5,6 @@ include(../../../Tools/cmake/common.cmake REQUIRED)
 EnsureProperties(CNTK_VERSION;)
 EnsureTools(swig;)
 
-# Configurations
-set(CMAKE_CONFIGURATION_TYPES Debug;Release;Release_NoOpt)
-
-set(is_debug $<CONFIG:Debug>)
-set(is_release_noopt $<CONFIG:Release_NoOpt>)
-
 include(../../../Tools/cmake/cpp_common.cmake REQUIRED)
 
 set(binary_name_suffix -${CNTK_VERSION}$<IF:${is_debug},d,>)
@@ -18,6 +12,13 @@ set(binary_name Cntk.Core.CSBinding${binary_name_suffix})
 
 # ----------------------------------------------------------------------
 # |  SWIG
+
+# swig generates the same C++ files for all configurations. However, it is configured to generate 
+# different files for C# as some of those generated files will pinvoke to specific CNTK dlls, which 
+# are built with filenames that are different between debug and release (the debug variation has 
+# a 'd' suffix).
+set(swig_config $<IF:${is_debug},Debug,Release>)
+
 set(native_swig_generated_files
         Generated/cntk_cs_wrap.h;
         Generated/cntk_cs_wrap.cxx
@@ -26,88 +27,88 @@ set(native_swig_generated_files
 set(csharp_swig_generated_files
         ;
         
-        # cmake doesn't like lists with generator expresions used as outputs
-        # Generated/$<CONFIG>/AdditionalLearningOptions.cs;
-        # Generated/$<CONFIG>/Axis.cs;
-        # Generated/$<CONFIG>/AxisVector.cs;
-        # Generated/$<CONFIG>/BoolVector.cs;
-        # Generated/$<CONFIG>/CharVector.cs;
-        # Generated/$<CONFIG>/CNTKDictionary.cs;
-        # Generated/$<CONFIG>/CNTKLib.cs;
-        # Generated/$<CONFIG>/CNTKLibPINVOKE.cs;
-        # Generated/$<CONFIG>/Constant.cs;
-        # Generated/$<CONFIG>/ConstantVector.cs;
-        # Generated/$<CONFIG>/DataType.cs;
-        # Generated/$<CONFIG>/DataUnit.cs;
-        # Generated/$<CONFIG>/DeviceDescriptor.cs;
-        # Generated/$<CONFIG>/DeviceDescriptorVector.cs;
-        # Generated/$<CONFIG>/DeviceKind.cs;
-        # Generated/$<CONFIG>/DictionaryValue.cs;
-        # Generated/$<CONFIG>/DictionaryVector.cs;
-        # Generated/$<CONFIG>/DoubleVector.cs;
-        # Generated/$<CONFIG>/DoubleVectorVector.cs;
-        # Generated/$<CONFIG>/Evaluator.cs;
-        # Generated/$<CONFIG>/float16.cs;
-        # Generated/$<CONFIG>/FloatVector.cs;
-        # Generated/$<CONFIG>/FloatVectorVector.cs;
-        # Generated/$<CONFIG>/Function.cs;
-        # Generated/$<CONFIG>/FunctionPtrVector.cs;
-        # Generated/$<CONFIG>/HTKFeatureConfiguration.cs;
-        # Generated/$<CONFIG>/HTKFeatureConfigurationVector.cs;
-        # Generated/$<CONFIG>/IntVector.cs;
-        # Generated/$<CONFIG>/Learner.cs;
-        # Generated/$<CONFIG>/LearnerVector.cs;
-        # Generated/$<CONFIG>/MaskKind.cs;
-        # Generated/$<CONFIG>/MinibatchData.cs;
-        # Generated/$<CONFIG>/MinibatchInfo.cs;
-        # Generated/$<CONFIG>/MinibatchSource.cs;
-        # Generated/$<CONFIG>/MinibatchSourceConfig.cs;
-        # Generated/$<CONFIG>/ModelFormat.cs;
-        # Generated/$<CONFIG>/NDArrayView.cs;
-        # Generated/$<CONFIG>/NDArrayViewPtrVector.cs;
-        # Generated/$<CONFIG>/NDMask.cs;
-        # Generated/$<CONFIG>/NDShape.cs;
-        # Generated/$<CONFIG>/PaddingMode.cs;
-        # Generated/$<CONFIG>/PairDoubleDouble.cs;
-        # Generated/$<CONFIG>/PairFloatFloat.cs;
-        # Generated/$<CONFIG>/PairIntInt.cs;
-        # Generated/$<CONFIG>/PairNDArrayViewPtrNDArrayViewPtr.cs;
-        # Generated/$<CONFIG>/PairSizeTDouble.cs;
-        # Generated/$<CONFIG>/PairSizeTInt.cs;
-        # Generated/$<CONFIG>/PairSizeTSizeT.cs;
-        # Generated/$<CONFIG>/Parameter.cs;
-        # Generated/$<CONFIG>/ParameterCloningMethod.cs;
-        # Generated/$<CONFIG>/ParameterVector.cs;
-        # Generated/$<CONFIG>/PoolingType.cs;
-        # Generated/$<CONFIG>/ProgressWriter.cs;
-        # Generated/$<CONFIG>/ProgressWriterVector.cs;
-        # Generated/$<CONFIG>/SizeTVector.cs;
-        # Generated/$<CONFIG>/SizeTVectorVector.cs;
-        # Generated/$<CONFIG>/StorageFormat.cs;
-        # Generated/$<CONFIG>/StreamConfiguration.cs;
-        # Generated/$<CONFIG>/StreamConfigurationVector.cs;
-        # Generated/$<CONFIG>/StreamInformation.cs;
-        # Generated/$<CONFIG>/StringVector.cs;
-        # Generated/$<CONFIG>/SWIGTYPE_p_int8_t.cs;
-        # Generated/$<CONFIG>/SWIGTYPE_p_void.cs;
-        # Generated/$<CONFIG>/TraceLevel.cs;
-        # Generated/$<CONFIG>/Trainer.cs;
-        # Generated/$<CONFIG>/TrainingParameterScheduleDouble.cs;
-        # Generated/$<CONFIG>/UnorderedMapParameterNDArrayViewPtr.cs;
-        # Generated/$<CONFIG>/UnorderedMapStreamInformationMinibatchData.cs;
-        # Generated/$<CONFIG>/UnorderedMapStreamInformationPairNDArrayViewPtrNDArrayViewPtr.cs;
-        # Generated/$<CONFIG>/UnorderedMapStringDictionaryValue.cs;
-        # Generated/$<CONFIG>/UnorderedMapVariableMinibatchData.cs;
-        # Generated/$<CONFIG>/UnorderedMapVariableValuePtr.cs;
-        # Generated/$<CONFIG>/UnorderedMapVariableVariable.cs;
-        # Generated/$<CONFIG>/UnsignedCharVector.cs;
-        # Generated/$<CONFIG>/Value.cs;
-        # Generated/$<CONFIG>/Variable.cs;
-        # Generated/$<CONFIG>/VariableKind.cs;
-        # Generated/$<CONFIG>/VariablePair.cs;
-        # Generated/$<CONFIG>/VariablePairVector.cs;
-        # Generated/$<CONFIG>/VariableVector.cs;
-        # Generated/$<CONFIG>/VectorPairSizeTDouble.cs;
+        # cmake doesn't like lists that resolve to generator expresions used as outputs
+        # Generated/${swig_config}/AdditionalLearningOptions.cs;
+        # Generated/${swig_config}/Axis.cs;
+        # Generated/${swig_config}/AxisVector.cs;
+        # Generated/${swig_config}/BoolVector.cs;
+        # Generated/${swig_config}/CharVector.cs;
+        # Generated/${swig_config}/CNTKDictionary.cs;
+        # Generated/${swig_config}/CNTKLib.cs;
+        # Generated/${swig_config}/CNTKLibPINVOKE.cs;
+        # Generated/${swig_config}/Constant.cs;
+        # Generated/${swig_config}/ConstantVector.cs;
+        # Generated/${swig_config}/DataType.cs;
+        # Generated/${swig_config}/DataUnit.cs;
+        # Generated/${swig_config}/DeviceDescriptor.cs;
+        # Generated/${swig_config}/DeviceDescriptorVector.cs;
+        # Generated/${swig_config}/DeviceKind.cs;
+        # Generated/${swig_config}/DictionaryValue.cs;
+        # Generated/${swig_config}/DictionaryVector.cs;
+        # Generated/${swig_config}/DoubleVector.cs;
+        # Generated/${swig_config}/DoubleVectorVector.cs;
+        # Generated/${swig_config}/Evaluator.cs;
+        # Generated/${swig_config}/float16.cs;
+        # Generated/${swig_config}/FloatVector.cs;
+        # Generated/${swig_config}/FloatVectorVector.cs;
+        # Generated/${swig_config}/Function.cs;
+        # Generated/${swig_config}/FunctionPtrVector.cs;
+        # Generated/${swig_config}/HTKFeatureConfiguration.cs;
+        # Generated/${swig_config}/HTKFeatureConfigurationVector.cs;
+        # Generated/${swig_config}/IntVector.cs;
+        # Generated/${swig_config}/Learner.cs;
+        # Generated/${swig_config}/LearnerVector.cs;
+        # Generated/${swig_config}/MaskKind.cs;
+        # Generated/${swig_config}/MinibatchData.cs;
+        # Generated/${swig_config}/MinibatchInfo.cs;
+        # Generated/${swig_config}/MinibatchSource.cs;
+        # Generated/${swig_config}/MinibatchSourceConfig.cs;
+        # Generated/${swig_config}/ModelFormat.cs;
+        # Generated/${swig_config}/NDArrayView.cs;
+        # Generated/${swig_config}/NDArrayViewPtrVector.cs;
+        # Generated/${swig_config}/NDMask.cs;
+        # Generated/${swig_config}/NDShape.cs;
+        # Generated/${swig_config}/PaddingMode.cs;
+        # Generated/${swig_config}/PairDoubleDouble.cs;
+        # Generated/${swig_config}/PairFloatFloat.cs;
+        # Generated/${swig_config}/PairIntInt.cs;
+        # Generated/${swig_config}/PairNDArrayViewPtrNDArrayViewPtr.cs;
+        # Generated/${swig_config}/PairSizeTDouble.cs;
+        # Generated/${swig_config}/PairSizeTInt.cs;
+        # Generated/${swig_config}/PairSizeTSizeT.cs;
+        # Generated/${swig_config}/Parameter.cs;
+        # Generated/${swig_config}/ParameterCloningMethod.cs;
+        # Generated/${swig_config}/ParameterVector.cs;
+        # Generated/${swig_config}/PoolingType.cs;
+        # Generated/${swig_config}/ProgressWriter.cs;
+        # Generated/${swig_config}/ProgressWriterVector.cs;
+        # Generated/${swig_config}/SizeTVector.cs;
+        # Generated/${swig_config}/SizeTVectorVector.cs;
+        # Generated/${swig_config}/StorageFormat.cs;
+        # Generated/${swig_config}/StreamConfiguration.cs;
+        # Generated/${swig_config}/StreamConfigurationVector.cs;
+        # Generated/${swig_config}/StreamInformation.cs;
+        # Generated/${swig_config}/StringVector.cs;
+        # Generated/${swig_config}/SWIGTYPE_p_int8_t.cs;
+        # Generated/${swig_config}/SWIGTYPE_p_void.cs;
+        # Generated/${swig_config}/TraceLevel.cs;
+        # Generated/${swig_config}/Trainer.cs;
+        # Generated/${swig_config}/TrainingParameterScheduleDouble.cs;
+        # Generated/${swig_config}/UnorderedMapParameterNDArrayViewPtr.cs;
+        # Generated/${swig_config}/UnorderedMapStreamInformationMinibatchData.cs;
+        # Generated/${swig_config}/UnorderedMapStreamInformationPairNDArrayViewPtrNDArrayViewPtr.cs;
+        # Generated/${swig_config}/UnorderedMapStringDictionaryValue.cs;
+        # Generated/${swig_config}/UnorderedMapVariableMinibatchData.cs;
+        # Generated/${swig_config}/UnorderedMapVariableValuePtr.cs;
+        # Generated/${swig_config}/UnorderedMapVariableVariable.cs;
+        # Generated/${swig_config}/UnsignedCharVector.cs;
+        # Generated/${swig_config}/Value.cs;
+        # Generated/${swig_config}/Variable.cs;
+        # Generated/${swig_config}/VariableKind.cs;
+        # Generated/${swig_config}/VariablePair.cs;
+        # Generated/${swig_config}/VariablePairVector.cs;
+        # Generated/${swig_config}/VariableVector.cs;
+        # Generated/${swig_config}/VectorPairSizeTDouble.cs;
 )
 
 set(swig_generated_files
@@ -127,7 +128,7 @@ set(swig_command_line
         "${swig_params} -c++ -csharp -namespace CNTK -dllimport \"${binary_name}.dll\""
 )
 
-file(TO_NATIVE_PATH "${CMAKE_CURRENT_BINARY_DIR}/Generated/$<CONFIG>" swig_outdir)
+file(TO_NATIVE_PATH "${CMAKE_CURRENT_BINARY_DIR}/Generated/${swig_config}" swig_outdir)
 set(swig_command_line 
         "${swig_command_line} -outdir \"${swig_outdir}\""
 )
@@ -159,7 +160,7 @@ add_custom_command(
     OUTPUT 
         ${swig_generated_files}
     
-    COMMAND ${CMAKE_COMMAND} -E make_directory "${CMAKE_CURRENT_BINARY_DIR}/Generated/$<CONFIG>"
+    COMMAND ${CMAKE_COMMAND} -E make_directory "${CMAKE_CURRENT_BINARY_DIR}/Generated/${swig_config}"
     COMMAND ${swig_binary} ${swig_command_line}
     COMMAND ${CMAKE_COMMAND} -E copy "${CMAKE_CURRENT_SOURCE_DIR}/cntk_cs_wrap.h" "${CMAKE_CURRENT_BINARY_DIR}/Generated"
     COMMAND ${CMAKE_COMMAND} -E copy "${CMAKE_CURRENT_SOURCE_DIR}/cntk_cs_wrap.cxx" "${CMAKE_CURRENT_BINARY_DIR}/Generated"
