@@ -2,14 +2,49 @@
 # be generally applicable across a variety of different projects. Project-specific customizations should be defined
 # in a separate file.
 
+option( 
+    CODE_COVERAGE
+    "Produce builds that can be used to extract code coverage information."
+    "OFF"
+)
+
+option(
+    SUPPORT_AVX2
+    "Produce builds that support Advanced Vector Extensions."
+    "OFF"
+)
+
 set(CMAKE_CONFIGURATION_TYPES Debug;Release;Release_NoOpt)
 
 set(is_debug $<CONFIG:Debug>)
 set(is_release_noopt $<CONFIG:Release_NoOpt>)
 
 if(MSVC)
-    add_definitions(-DUNICODE -D_UNICODE)                                                       # Use UNICODE character set
-                            
+    # ----------------------------------------------------------------------
+    # |
+    # | Microsoft Visual Studio
+    # |    
+    # ----------------------------------------------------------------------
+    
+    # ----------------------------------------------------------------------
+    # | Preprocessor Definitions
+    add_definitions(
+        -DUNICODE;                                                                              # Use UNICODE character set
+        -D_UNICODE;                                                                             # Use UNICODE character set
+    )                                                       
+    
+    # Debug-specific flags
+    foreach(definition
+        -DDEBUG                                                                                 # Debug mode
+        -D_DEBUG                                                                                # Debug mode
+    )
+        # Note that add_definitions isn't able to handle generator expressions, so we
+        # have to do the generation manually.
+        string(APPEND CMAKE_CXX_FLAGS_DEBUG " ${definition}")
+    endforeach()
+    
+    # ----------------------------------------------------------------------
+    # | Compiler Flags
     add_compile_options(                                                                        # Option
                                                                                                 # ------------------------------------
         /bigobj                                                                                 # Increase number of sections in object file
@@ -30,31 +65,101 @@ if(MSVC)
     add_compile_options($<$<NOT:${is_debug}>:/Qpar>)                                            # Enable Parallel Code Generation       <Default>               Yes                     Yes
     add_compile_options($<IF:${is_debug},/ZI,/Zi>)                                              # Program Database                      Edit & Continue         Standard                Standard
     
-    # Set linker flags. Note that there isn't a cmake method called add_linker_options
-    # that is able to handle generator expressions, so we have to do the generation manually.
-    foreach(linker_flag
-                                                                                                # Option
+    # ----------------------------------------------------------------------
+    # | Linker Flags
+    if(${CODE_COVERAGE})
+        foreach(linker_flag                                                                     # Option
                                                                                                 # ------------------------------------
-        /PROFILE;                                                                               # Enable profiling
-    )
-        set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} ${linker_flag}")
-        set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} ${linker_flag}")
-    endforeach()
-    
+            /PROFILE                                                                            # Enable profiling
+        )
+            string(APPEND CMAKE_EXE_LINKER_FLAGS " ${linker_flag}")
+            string(APPEND CMAKE_SHARED_LINKER_FLAGS " ${linker_flag}")
+        endforeach()
+    endif()
+
     # Release-specific linker flags
     foreach(linker_flag 
-                                                                                                # Option
-                                                                                                # ------------------------------------
-        /DEBUG;                                                                                 # Generate Debug Information
-        /OPT:ICF;                                                                               # Enable COMDAT Folding
-        /OPT:REF;                                                                               # References
+        /DEBUG                                                                                  # Generate Debug Information
+        /OPT:ICF                                                                                # Enable COMDAT Folding
+        /OPT:REF                                                                                # References
     )
-        set(CMAKE_EXE_LINKER_FLAGS_RELEASE "${CMAKE_EXE_LINKER_FLAGS_RELEASE} ${linker_flag}")
-        set(CMAKE_SHARED_LINKER_FLAGS_RELEASE "${CMAKE_SHARED_LINKER_FLAGS_RELEASE} ${linker_flag}")
+        # Note that there isn't a cmake method called add_linker_options that is able to handle 
+        # generator expressions, so we have to do the generation manually.
+        string(APPEND CMAKE_EXE_LINKER_FLAGS_RELEASE " ${linker_flag}")
+        string(APPEND CMAKE_SHARED_LINKER_FLAGS_RELEASE " ${linker_flag}")
     endforeach()
 
 else()
-    add_compile_options(-W -Wall -Werror)
+    # ----------------------------------------------------------------------
+    # |
+    # | GCC(-like)
+    # |    
+    # ----------------------------------------------------------------------
+
+    # ----------------------------------------------------------------------
+    # | Preprocessor Definitions
+    add_definitions(
+        -D__USE_XOPEN2K
+        -D_POSIX_SOURCE
+        -D_XOPEN_SOURCE=600
+        -DNO_SYNC
+    )
+
+    # -D_DEBUG (Debug)
+
+    # ----------------------------------------------------------------------
+    # | Compiler Flags
+    add_compile_options(                                                                        # Option
+                                                                                                # ------------------------------------
+        -fcheck-new                                                                             # Check the return value of new in C++.
+        -fopenmp                                                                                # Enable OpenMP
+        -fpermissive                                                                            # Downgrade conformance errors to warnings.
+        -fPIC                                                                                   # Generate position-independent code if possible (large mode).
+        # -g                                                                                    # ???? means pass on args to subtools, but didn't have trailing args in original makefile
+        -msse4.1                                                                                # Support MMX, SSE, SSE2, SSE3, SSSE3 and SSE4.1 built-in functions and code generation.
+        -std=c11                                                                                # Conform to the ISO 2011 C standard.
+        -Wall                                                                                   # Enable most warning messages.
+        -Wextra                                                                                 # Print extra (possibly unwanted) warnings. 
+        -Werror                                                                                 # Treat all warnings as errors.
+    )
+
+    if(${CODE_COVERAGE})
+        add_compile_options(
+            -fprofile-arcs                                                                      # Insert arc-based program profiling code.
+            -ftest-coverage                                                                     # Create data files needed by "gcov".
+        )
+    endif()
+
+    if(${SUPPORT_AVX2})
+        add_compile_options(
+            -mavx2                                                                              # Support MMX, SSE, SSE2, SSE3, SSSE3, SSE4.1, SSE4.2, AVX and AVX2 built-in functions and code generation.
+        )
+    endif()
+                                                                                                # Option                                Debug                   Release                 Release_NoOpt
+                                                                                                # ------------------------------------  ----------------------  ----------------------  ----------------------
+    add_compile_options($<$<NOT:$<OR:${is_debug},${is_release_noopt}>>:/O4>)                    # Set optimization level                <Default>               4                       <Default>
+
+    # ----------------------------------------------------------------------
+    # | Linker Flags
+    foreach(linker_flag                                                                         # Option
+                                                                                                # ------------------------------------
+        # -rdynamic                                                                             # ???? -dynamicbase?
+    )
+        string(APPEND CMAKE_EXE_LINKER_FLAGS " ${linker_flag}")
+        string(APPEND CMAKE_SHARED_LINKER_FLAGS " ${linker_flag}")
+    endforeach()
+
+    if(${CODE_COVERAGE})
+        foreach(linker_flag                                                                     
+            --coverage                                                                          # ????
+            -lgcov                                                                              # Link with gcov libraries
+            
+        )
+            string(APPEND CMAKE_EXE_LINKER_FLAGS " ${linker_flag}")
+            string(APPEND CMAKE_SHARED_LINKER_FLAGS " ${linker_flag}")
+        endforeach()
+    endif()
+
 endif()
 
 # Define the Release_NoOpt configuration in terms of Release. Differentiation between the configurations 
