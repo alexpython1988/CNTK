@@ -117,8 +117,8 @@ namespace CNTK
         {PrimitiveOpType::ConstantOp, L"ConstantOp"},
         {PrimitiveOpType::Squeeze, L"Squeeze"},
         {PrimitiveOpType::Cast, L"Cast" },
-        {PrimitiveOpType::CustomProxyOp, L"CustomProxyOp" },
         { PrimitiveOpType::EyeLikeOp, L"EyeLikeOp" },
+        { PrimitiveOpType::CustomProxyOp, L"CustomProxyOp" },
     };
 
     inline const std::wstring& PrimitiveOpTypeName(PrimitiveOpType opType)

@@ -101,8 +101,8 @@ namespace CNTK
         ConstantOp = 89,
         LatticeSequenceWithSoftmax = 90,
         Cast = 91,
-        CustomProxyOp = 92,
-        EyeLikeOp = 93,
+        EyeLikeOp = 92,
+        CustomProxyOp = 93,
 
         // New op types should only be appended to the end of this list 
         UnknownOP
