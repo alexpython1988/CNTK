@@ -1101,7 +1101,12 @@ namespace CNTK
                                 RuntimeError("Function '%S': cannot get k>1 items from a scalar.", AsString().c_str());
                             break;
                         }
-                        case PrimitiveOpType::CustomProxyOp: // No validations are performed for this op.
+                        case PrimitiveOpType::CustomProxyOp:
+                            // Set the output shape using the attribute.
+                            if (m_attributes.Contains(PrimitiveFunction::AttributeNameOutputShape))
+                            {
+                                outputShape = m_attributes[PrimitiveFunction::AttributeNameOutputShape].Value<NDShape>();
+                            }
                             break;
                         default:
                             LogicError("Specified Primitive Function op %S is not supported", PrimitiveOpTypeName(m_op).c_str());
