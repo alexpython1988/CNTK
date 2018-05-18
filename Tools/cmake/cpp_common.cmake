@@ -18,14 +18,22 @@ set(CMAKE_CONFIGURATION_TYPES Debug;Release;Release_NoOpt)
 
 # If CMAKE_BUILD_TYPE is defined, we are looking at a single-configuration and can extract information directly from this value.
 # If it is not defined, then we need to use a dynamic generator.
-if(DEFINED CMAKE_BUILD_TYPE)
+if(DEFINED CMAKE_BUILD_TYPE AND NOT CMAKE_BUILD_TYPE STREQUAL "")
     string(COMPARE EQUAL "${CMAKE_BUILD_TYPE}" "Debug" is_debug)
     string(COMPARE EQUAL "${CMAKE_BUILD_TYPE}" "Release_NoOpt" is_release_noopt)
     set(config "${CMAKE_BUILD_TYPE}")
+
+elseif(CMAKE_GENERATOR STREQUAL "Unix Makefiles")
+    # This code isn't quite right. What we actually want to do is say that CMAKE_BUILD_TYPE must be defined
+    # for any generator that doesn't support the use of CONFIG as a generator expression. I haven't found a way
+    # to detect that in the cmake logic.
+    message(FATAL_ERROR "'CMAKE_BUILD_TYPE' must be defined")
+
 else()
     set(is_debug $<CONFIG:Debug>)
     set(is_release_noopt $<CONFIG:Release_NoOpt>)
     set(config $<CONFIG>)
+    
 endif()
 
 if(MSVC)
@@ -161,6 +169,8 @@ else()
                                                                                                 # ------------------------------------
         # -rdynamic                                                                             # ???? -dynamicbase?
     )
+        # Note that add_definitions isn't able to handle generator expressions, so we
+        # have to do the generation manually.
         string(APPEND CMAKE_EXE_LINKER_FLAGS " ${linker_flag}")
         string(APPEND CMAKE_SHARED_LINKER_FLAGS " ${linker_flag}")
     endforeach()
@@ -171,6 +181,8 @@ else()
             -lgcov                                                                              # Link with gcov libraries
             
         )
+            # Note that add_definitions isn't able to handle generator expressions, so we
+            # have to do the generation manually.
             string(APPEND CMAKE_EXE_LINKER_FLAGS " ${linker_flag}")
             string(APPEND CMAKE_SHARED_LINKER_FLAGS " ${linker_flag}")
         endforeach()
