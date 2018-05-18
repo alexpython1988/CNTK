@@ -1692,8 +1692,8 @@ namespace CNTK
     {
         auto attributes = Dictionary();
         attributes[PrimitiveFunction::AttributeNameCustomOp] = customOp;
+        attributes[PrimitiveFunction::AttributeNameOutputShape] = outputShape;
         auto op = AsComposite(MakeSharedObject<PrimitiveFunction>(PrimitiveOpType::CustomProxyOp, operands, std::move(attributes), name));
-        Reshape(op->Output(), outputShape, name);
         return op;
     }
     
