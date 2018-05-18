@@ -1102,6 +1102,7 @@ namespace CNTK
                             break;
                         }
                         case PrimitiveOpType::CustomProxyOp: // No validations are performed for this op.
+                            break;
                         default:
                             LogicError("Specified Primitive Function op %S is not supported", PrimitiveOpTypeName(m_op).c_str());
                             break;
