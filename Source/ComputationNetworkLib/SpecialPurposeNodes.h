@@ -1433,22 +1433,27 @@ template class OutputMultiplexerNode<float>;
 template class OutputMultiplexerNode<double>;
 
 // -----------------------------------------------------------------------
-// QuantizedProxyTimesNode is a placeholder node for a quantized times operation.
+// CustomProxyOpNode is a placeholder node for a quantized operations.
 // It enables saving a model with its parameters so that they can be loaded
 // from the optimized implementation (Halide) for execution.
 // -----------------------------------------------------------------------
 
 template <class ElemType>
-class QuantizedProxyTimesNode : public ComputationNode<ElemType>, public NumInputs<4>
+class CustomProxyOpNode : public ComputationNode<ElemType> /* Not deriving from NumInputs, public NumInputs<4>*/
 {
     typedef ComputationNode<ElemType> Base; UsingComputationNodeMembersBoilerplate;
-    static const std::wstring TypeName() { return L"QuantizedProxyTimesNode"; }
+    static const std::wstring TypeName() { return L"CustomProxyOpNode"; }
 
 public:
-    DeclareConstructorFromConfigWithNumInputs(QuantizedProxyTimesNode);
-    QuantizedProxyTimesNode(DEVICEID_TYPE deviceId, const wstring& name)
+    CustomProxyOpNode(DEVICEID_TYPE deviceId, const wstring& name)
         : Base(deviceId, name)
     {
+    }
+
+    CustomProxyOpNode(const ScriptableObjects::IConfigRecordPtr configp)
+        : CustomProxyOpNode(configp->Get(L"deviceId"), L"<placeholder>")
+    {
+        AttachInputsFromConfig(configp);
     }
 
     virtual void /*ComputationNode::*/ ForwardProp(const FrameRange& fr) override
@@ -1460,8 +1465,10 @@ public:
     {
         NOT_IMPLEMENTED
     }
+
+private:
 };
 
-template class QuantizedProxyTimesNode<float>;
+template class CustomProxyOpNode<float>;
 
 } } }

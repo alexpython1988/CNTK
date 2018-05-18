@@ -3992,9 +3992,9 @@ def mean_variance_normalization(operand, epsilon=0.00001, use_stats_across_chann
     return mean_variance_normalization(operand, epsilon, use_stats_across_channels, do_variance_scaling, name)
 
 @typemap
-def quantized_proxy_times(v1, v2, v3, v4, name=''):
+def custom_proxy_op(custom_op, *operands, output_shape, name=''):
     '''
-    A proxy node that helps saving a model with quantized times operation. 
+    A proxy node that helps saving a model with different number of operands. 
 
     Example:
 
@@ -4003,5 +4003,15 @@ def quantized_proxy_times(v1, v2, v3, v4, name=''):
     Returns:
         :class:`~cntk.ops.functions.Function`
     '''
-    from cntk.cntk_py import quantized_proxy_times
-    return quantized_proxy_times(v1,v2,v3,v4, name)
+    from cntk.cntk_py import custom_proxy_op
+    if len(operands) == 1 and isinstance(operands[0], (tuple, list)):
+        operands = operands[0]
+    if isinstance(operands, tuple):
+        operands = list(operands)
+    operands_unfold = []
+    for o in operands:
+        if hasattr(o, 'outputs') and len(o.outputs) > 1:
+            operands_unfold += o.outputs
+        else:
+            operands_unfold += [o]
+    return custom_proxy_op(operands_unfold, custom_op, output_shape, name)

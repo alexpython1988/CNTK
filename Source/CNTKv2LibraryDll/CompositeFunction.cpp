@@ -1332,9 +1332,9 @@ namespace CNTK
                     }
                     break;
                 }
-                case PrimitiveOpType::QuantizedProxyTimes:
+                case PrimitiveOpType::CustomProxyOp:
                 {
-                    ASSIGN_NEW_NODE(QuantizedProxyTimesNode, network->GetDeviceId(), internalNodeName);
+                    ASSIGN_NEW_NODE(CustomProxyOpNode, network->GetDeviceId(), internalNodeName);
                     break;
                 }
                 default:

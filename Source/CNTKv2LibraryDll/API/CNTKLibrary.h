@@ -4807,7 +4807,7 @@ namespace CNTK
     /// Creates and instance of CNTK built in operator for quantized times operation. However, this is a proxy operation
     /// that simply assist saving the parameters for later execution by an optimized implementation. E.g. Halide.
     ///
-    CNTK_API FunctionPtr QuantizedProxyTimes(const Variable& v1, const Variable& v2, const Variable& v3, const Variable& v4, const std::wstring& name = L"");
+    CNTK_API FunctionPtr CustomProxyOp(const std::vector<Variable>& operands, const std::wstring& customOp, const NDShape& outputShape, const std::wstring& name = L"");
 
     namespace Sequence
     {

@@ -1101,7 +1101,7 @@ namespace CNTK
                                 RuntimeError("Function '%S': cannot get k>1 items from a scalar.", AsString().c_str());
                             break;
                         }
-                        case PrimitiveOpType::QuantizedProxyTimes:
+                        case PrimitiveOpType::CustomProxyOp:
                         {
                             assert(m_inputs.size() == 4);
                             outputShape = m_inputs[1].Shape();

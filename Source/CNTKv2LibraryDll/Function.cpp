@@ -1688,10 +1688,13 @@ namespace CNTK
         return UnaryOp(PrimitiveOpType::ConstantOp, operand, std::move(additionalProperties), name);
     }
 
-    FunctionPtr QuantizedProxyTimes(const Variable& v1, const Variable& v2, const Variable& v3, const Variable& v4, const std::wstring& name)
+    FunctionPtr CustomProxyOp(const std::vector<Variable>& operands, const std::wstring& customOp, const NDShape& outputShape, const std::wstring& name)
     {
-        std::vector<Variable> operands{ v1, v2, v3, v4 };
-        return AsComposite(MakeSharedObject<PrimitiveFunction>(PrimitiveOpType::QuantizedProxyTimes, operands, Dictionary(), name));
+        auto attributes = Dictionary();
+        attributes[PrimitiveFunction::AttributeNameCustomOp] = customOp;
+        auto op = AsComposite(MakeSharedObject<PrimitiveFunction>(PrimitiveOpType::CustomProxyOp, operands, std::move(attributes), name));
+        Reshape(op->Output(), outputShape, name);
+        return op;
     }
     
     FunctionPtr EyeLike(const Variable& operand, bool isOutputSparse, const std::wstring& name)

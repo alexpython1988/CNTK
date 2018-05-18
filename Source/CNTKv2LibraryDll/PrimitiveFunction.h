@@ -117,7 +117,7 @@ namespace CNTK
         {PrimitiveOpType::ConstantOp, L"ConstantOp"},
         {PrimitiveOpType::Squeeze, L"Squeeze"},
         {PrimitiveOpType::Cast, L"Cast" },
-        {PrimitiveOpType::QuantizedProxyTimes, L"QuantizedProxyTimes" },
+        {PrimitiveOpType::CustomProxyOp, L"CustomProxyOp" },
         { PrimitiveOpType::EyeLikeOp, L"EyeLikeOp" },
     };
 
@@ -318,6 +318,7 @@ namespace CNTK
         static const std::wstring AttributeNameUseStatsAcrossChannels;
         static const std::wstring AttributeNameDoVarianceScaling;
         static const std::wstring AttributeNameGroups;
+        static const std::wstring AttributeNameCustomOp;
 
         static const size_t convolutionOpDefaultValueForGroups = 1;
 
@@ -802,7 +803,7 @@ namespace CNTK
         bool IsSimpleInferOutputOp()
         {
             return m_op == PrimitiveOpType::NoOp ||
-                m_op == PrimitiveOpType::QuantizedProxyTimes;
+                m_op == PrimitiveOpType::CustomProxyOp;
         }
 
         FunctionPtr Clone(const std::vector<Variable>& clonedInputs) override
