@@ -2,8 +2,8 @@
 # EnsureProperties
 #   Validates that all properties have been defined.
 #
-function(EnsureProperties properties)
-    foreach(property ${properties})
+function(EnsureProperties)
+    foreach(property ${ARGN})
         if(NOT DEFINED "${property}")
             message(FATAL_ERROR 
         
@@ -21,8 +21,8 @@ endfunction()
 #   Validates that all tools are available. This is a macro to ensure that the property '<tool_name>_binary' is available within
 #   the namespace of calling scripts.
 #
-macro(EnsureTools tools)
-    foreach(tool ${tools})
+macro(EnsureTools)
+    foreach(tool ${ARGN})
         find_program(${tool}_binary ${tool})
         if(${tool}_binary STREQUAL ${tool}_binary-NOTFOUND)
             message(FATAL_ERROR

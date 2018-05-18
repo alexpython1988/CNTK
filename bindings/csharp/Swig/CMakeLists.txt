@@ -7,7 +7,7 @@ EnsureTools(swig;)
 
 include(../../../Tools/cmake/cpp_common.cmake REQUIRED)
 
-set(binary_name_suffix -${CNTK_VERSION}$<IF:${is_debug},d,>)
+set(binary_name_suffix -${CNTK_VERSION}$<${is_debug}:d>)
 set(binary_name Cntk.Core.CSBinding${binary_name_suffix})
 
 # ----------------------------------------------------------------------
@@ -20,7 +20,7 @@ set(binary_name Cntk.Core.CSBinding${binary_name_suffix})
 set(swig_config $<IF:${is_debug},Debug,Release>)
 
 set(native_swig_generated_files
-        Generated/cntk_cs_wrap.h;
+        Generated/cntk_cs_wrap.h
         Generated/cntk_cs_wrap.cxx
 )
 
@@ -112,7 +112,7 @@ set(csharp_swig_generated_files
 )
 
 set(swig_generated_files
-        ${native_swig_generated_files};
+        ${native_swig_generated_files}
         ${csharp_swig_generated_files}
 )
 
@@ -121,28 +121,39 @@ if(MSVC)
             -D_MSC_VER 
             -Werror
     )
+else()
+    set(swig_params "")
 endif()
 
 # Create the swig command line; it needs to be constructed manually as cmake won't convert path separators for the command.
 set(swig_command_line 
-        "${swig_params} -c++ -csharp -namespace CNTK -dllimport \"${binary_name}.dll\""
+        ${swig_params}
+        -c++ 
+        -csharp 
+        -namespace CNTK 
+        -dllimport 
+        \"${binary_name}.dll\"
 )
 
-file(TO_NATIVE_PATH "${CMAKE_CURRENT_BINARY_DIR}/Generated/${swig_config}" swig_outdir)
-set(swig_command_line 
-        "${swig_command_line} -outdir \"${swig_outdir}\""
+file(TO_NATIVE_PATH "${CMAKE_CURRENT_BINARY_DIR}/Generated/" swig_outdir)
+set(swig_command_line
+        ${swig_command_line}
+        -outdir
+        \"${swig_outdir}${swig_config}\"
 )
 
 foreach(swig_include ${CMAKE_CURRENT_SOURCE_DIR}/../../../Source/CNTKv2LibraryDll/API;${CMAKE_CURRENT_SOURCE_DIR}/../../common)
     file(TO_NATIVE_PATH "${swig_include}" swig_include)
-    set(swig_command_line 
-            "${swig_command_line} \"-I${swig_include}\""
+    set(swig_command_line
+            ${swig_command_line}
+            \"-I${swig_include}\"
     )
 endforeach()
 
 file(TO_NATIVE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cntk_cs.i" swig_input)
-set(swig_command_line 
-        "${swig_command_line} \"${swig_input}\""
+set(swig_command_line
+        ${swig_command_line}
+        \"${swig_input}\"
 )
 
 # Invoke the command line
@@ -173,12 +184,18 @@ add_custom_command(
 add_library(CSharpBindings SHARED ${native_swig_generated_files})
 
 set_target_properties(CSharpBindings PROPERTIES OUTPUT_NAME ${binary_name})
+set_target_properties(CSharpBindings PROPERTIES PREFIX "")
 
 target_include_directories(CSharpBindings
     PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/../../../Source/CNTKv2LibraryDll/API
     PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/../../../Source/Common/Include
 )
 
+string(TOLOWER "${config}" lower_config)
+message(STATUS "BugBug********************* ${config} ${lower_config}")
+    
 target_link_libraries(CSharpBindings
-    PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/../../../x64/$<CONFIG>/Cntk.Core${binary_name_suffix}${CMAKE_STATIC_LIBRARY_SUFFIX} # TODO: Eventually, we should bind the this library rather than hard-coding the value
+    # TODO: Eventually, we should bind the this library rather than hard-coding the value
+    # BugBug PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/../../../x64/$<CONFIG>/Cntk.Core${binary_name_suffix}${CMAKE_STATIC_LIBRARY_SUFFIX} 
+    ${CMAKE_CURRENT_SOURCE_DIR}/../../../build/${lower_config}/lib/${CMAKE_STATIC_LIBRARY_PREFIX}Cntk.Core${binary_name_suffix}${CMAKE_SHARED_LIBRARY_SUFFIX}
 )

@@ -16,8 +16,17 @@ option(
 
 set(CMAKE_CONFIGURATION_TYPES Debug;Release;Release_NoOpt)
 
-set(is_debug $<CONFIG:Debug>)
-set(is_release_noopt $<CONFIG:Release_NoOpt>)
+# If CMAKE_BUILD_TYPE is defined, we are looking at a single-configuration and can extract information directly from this value.
+# If it is not defined, then we need to use a dynamic generator.
+if(DEFINED CMAKE_BUILD_TYPE)
+    string(COMPARE EQUAL "${CMAKE_BUILD_TYPE}" "Debug" is_debug)
+    string(COMPARE EQUAL "${CMAKE_BUILD_TYPE}" "Release_NoOpt" is_release_noopt)
+    set(config "${CMAKE_BUILD_TYPE}")
+else()
+    set(is_debug $<CONFIG:Debug>)
+    set(is_release_noopt $<CONFIG:Release_NoOpt>)
+    set(config $<CONFIG>)
+endif()
 
 if(MSVC)
     # ----------------------------------------------------------------------
@@ -25,7 +34,7 @@ if(MSVC)
     # | Microsoft Visual Studio
     # |    
     # ----------------------------------------------------------------------
-    
+
     # ----------------------------------------------------------------------
     # | Preprocessor Definitions
     add_definitions(
@@ -50,13 +59,14 @@ if(MSVC)
         /bigobj                                                                                 # Increase number of sections in object file
         /fp:except-                                                                             # Enable Floating Point Exceptions: No
         /fp:fast                                                                                # Floating Point Model: Fast
-        /GR+                                                                                    # Run Time Type Information (RTTI)
+        /GR                                                                                     # Run Time Type Information (RTTI)
         /MP                                                                                     # Build with multiple processes
         /openmp                                                                                 # OpenMP 2.0 Support
         /sdl                                                                                    # Enable Additional Security Checks
         /W4                                                                                     # Warning level 4
         /WX                                                                                     # Warning as errors
-    )                           
+    )                         
+    
                                                                                                 # Option                                Debug                   Release                 Release_NoOpt
                                                                                                 # ------------------------------------  ----------------------  ----------------------  ----------------------
     add_compile_options($<$<NOT:${is_debug}>:/Gy>)                                              # Enable Function-Level Linking         <Default>               Yes                     Yes
@@ -105,7 +115,14 @@ else()
         -DNO_SYNC
     )
 
-    # -D_DEBUG (Debug)
+    # Debug-specific flags
+    foreach(definition
+        -D_DEBUG                                                                                # Debug mode
+    )
+        # Note that add_definitions isn't able to handle generator expressions, so we
+        # have to do the generation manually.
+        string(APPEND CMAKE_CXX_FLAGS_DEBUG " ${definition}")
+    endforeach()
 
     # ----------------------------------------------------------------------
     # | Compiler Flags
@@ -115,12 +132,11 @@ else()
         -fopenmp                                                                                # Enable OpenMP
         -fpermissive                                                                            # Downgrade conformance errors to warnings.
         -fPIC                                                                                   # Generate position-independent code if possible (large mode).
-        # -g                                                                                    # ???? means pass on args to subtools, but didn't have trailing args in original makefile
         -msse4.1                                                                                # Support MMX, SSE, SSE2, SSE3, SSSE3 and SSE4.1 built-in functions and code generation.
-        -std=c11                                                                                # Conform to the ISO 2011 C standard.
+        -std=c++11                                                                              # Conform to the ISO 2011 C standard.
         -Wall                                                                                   # Enable most warning messages.
         -Wextra                                                                                 # Print extra (possibly unwanted) warnings. 
-        -Werror                                                                                 # Treat all warnings as errors.
+        # TODO: -Werror                                                                                 # Treat all warnings as errors.
     )
 
     if(${CODE_COVERAGE})
@@ -137,7 +153,7 @@ else()
     endif()
                                                                                                 # Option                                Debug                   Release                 Release_NoOpt
                                                                                                 # ------------------------------------  ----------------------  ----------------------  ----------------------
-    add_compile_options($<$<NOT:$<OR:${is_debug},${is_release_noopt}>>:/O4>)                    # Set optimization level                <Default>               4                       <Default>
+    add_compile_options($<$<NOT:$<OR:${is_debug},${is_release_noopt}>>:-O4>)                    # Set optimization level                <Default>               4                       <Default>
 
     # ----------------------------------------------------------------------
     # | Linker Flags
