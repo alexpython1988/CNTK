@@ -1465,8 +1465,6 @@ public:
     {
         NOT_IMPLEMENTED
     }
-
-private:
 };
 
 template class CustomProxyOpNode<float>;

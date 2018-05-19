@@ -59,8 +59,10 @@ def test_custom_op_with_int8_params(tmpdir):
     W3 = C.Parameter((1, 42), dtype=np.float)
     X = C.input_variable((1, 42), dtype=np.float)
     # operands, name, custom_op, output_shape
-    z = C.custom_proxy_op("times", [X, W1, W2, W3], output_shape=(21, 2), name ="custom_proxy")
+    z = C.custom_proxy_op("times", [X, W1, W2, W3], output_shape=(21, 2), output_data_type=np.int8, name ="custom_proxy")
     z.save(model_file)
 
     newz = C.load_model(model_file)
+    assert(newz.parameters[0].shape == (1, 42))
+    assert(newz.output.shape == (21, 2))
     assert (np.array_equal(W1.value, newz.parameters[0].value))
