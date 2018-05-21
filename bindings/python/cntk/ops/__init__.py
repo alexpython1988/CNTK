@@ -3992,7 +3992,7 @@ def mean_variance_normalization(operand, epsilon=0.00001, use_stats_across_chann
     return mean_variance_normalization(operand, epsilon, use_stats_across_channels, do_variance_scaling, name)
 
 @typemap
-def custom_proxy_op(custom_op, *operands, output_shape, output_data_type, name=''):
+def custom_proxy_op(custom_op, output_shape, output_data_type, *operands, **kw_name):
     '''
     A proxy node that helps saving a model with different number of operands. 
 
@@ -4015,5 +4015,6 @@ def custom_proxy_op(custom_op, *operands, output_shape, output_data_type, name='
         else:
             operands_unfold += [o]
 
+    name = (lambda name='': (name))(**kw_name) # Python 2.7 does not allow (*inputs, name='')
     output_dtype = sanitize_dtype_cntk(output_data_type)
     return custom_proxy_op(operands_unfold, custom_op, output_shape, output_dtype, name)
